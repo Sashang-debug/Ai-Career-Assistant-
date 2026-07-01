@@ -27,10 +27,11 @@ export default function KeywordOptimizer({
   onApplyOptimized,
   initialAnalysis,
 }) {
-  const [analysis, setAnalysis] = useState(initialAnalysis);
+  const [analysis, setAnalysis] = useState(initialAnalysis ?? null);
 
   const {
     register,
+    reset,
     handleSubmit,
     formState: { errors },
   } = useForm({
@@ -44,6 +45,7 @@ export default function KeywordOptimizer({
     fn: optimizeFn,
     data: optimizationResult,
     error: optimizationError,
+    reset: resetOptimization,
   } = useFetch(optimizeResumeForJob);
 
   useEffect(() => {
@@ -72,6 +74,16 @@ export default function KeywordOptimizer({
       ...data,
       resumeContent,
     });
+  };
+
+  const handleResetAnalysis = () => {
+    if (analysis && !window.confirm("Existing ATS results will be cleared. Continue?")) {
+      return;
+    }
+
+    setAnalysis(null);
+    reset({ jobTitle: "", companyName: "", jobDescription: "" });
+    resetOptimization();
   };
 
   const handleApply = () => {
@@ -135,19 +147,29 @@ export default function KeywordOptimizer({
             )}
           </div>
 
-          <Button type="submit" disabled={optimizing}>
-            {optimizing ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Analyzing...
-              </>
-            ) : (
-              <>
-                <Sparkles className="mr-2 h-4 w-4" />
-                Analyze & Optimize
-              </>
-            )}
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button type="submit" disabled={optimizing}>
+              {optimizing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Analyzing...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Analyze & Optimize
+                </>
+              )}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleResetAnalysis}
+              disabled={optimizing}
+            >
+              Refresh
+            </Button>
+          </div>
         </form>
 
         {analysis && (
